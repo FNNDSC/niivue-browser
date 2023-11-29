@@ -35,6 +35,7 @@ import {
   ToolbarItem,
   Text,
   TextVariants,
+  Checkbox,
 } from "@patternfly/react-core";
 import BarsIcon from "@patternfly/react-icons/dist/esm/icons/bars-icon";
 import { Table, Tr, Tbody, Td } from "@patternfly/react-table";
@@ -203,6 +204,13 @@ const MyPage = ({
     changeCalMax(value);
   };
 
+  const onHighResCheckboxToggled = (_e: any, checked: boolean) => {
+    const nextState = produce(visualState, (draft) => {
+      draft.highResolutionCapable = checked;
+    });
+    onVisualStateChange(nextState);
+  };
+
   const changeCalMin = (value: number) => {
     const nextState = produce(visualState, (draft) => {
       draft.globalMeshOverlaySettings.cal_min = value;
@@ -287,6 +295,8 @@ const MyPage = ({
     </Masthead>
   );
 
+  const smallSkip = <div style={{ height: "1em" }}></div>;
+
   const sidebar = (
     <PageSidebar>
       <PageSidebarBody>
@@ -349,7 +359,17 @@ const MyPage = ({
                 value={visualState.globalMeshOverlaySettings.cal_max}
               ></Slider>
 
-              <div style={{ height: "1em" }}></div>
+              {smallSkip}
+
+              <Checkbox
+                id="high-resolution-capable"
+                onChange={onHighResCheckboxToggled}
+                isChecked={visualState.highResolutionCapable}
+                label="High resolution"
+              />
+
+              {smallSkip}
+
               <Button
                 variant="secondary"
                 onClick={() => changeMeshOverlay(CENTERNAME_NEVER)}

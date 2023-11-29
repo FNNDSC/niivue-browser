@@ -166,6 +166,8 @@ type VisualState = {
    * Mesh overlay settings to use for all mesh overlays.
    */
   globalMeshOverlaySettings: MeshOverlaySettings;
+
+  highResolutionCapable: boolean;
 };
 
 const INITIAL_STATE: VisualState = {
@@ -179,6 +181,7 @@ const INITIAL_STATE: VisualState = {
     cal_min: 0.0,
     cal_max: 10.0,
   },
+  highResolutionCapable: false,
 };
 Object.freeze(INITIAL_STATE);
 
@@ -213,9 +216,11 @@ function organizeUrlsAsState(
     }),
   );
 
-  const counter = previous.counter + 1;
-  const globalMeshOverlaySettings = previous.globalMeshOverlaySettings;
-  return { volumes, meshes, counter, globalMeshOverlaySettings };
+  return produce(previous, (draft) => {
+    draft.volumes = volumes;
+    draft.meshes = meshes;
+    draft.counter = previous.counter + 1;
+  });
 }
 
 /**

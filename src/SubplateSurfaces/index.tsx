@@ -23,16 +23,13 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   const meshCanvas = useRef();
   const volumeCanvas = useRef();
 
-  const meshNvRef = useRef<Niivue>();
-  const volumeNvRef = useRef<Niivue>();
+  const meshNvRef = useRef<Niivue>(new Niivue());
+  const volumeNvRef = useRef<Niivue>(new Niivue());
 
   const [lowerCanvasHeight, setLowerCanvasHeight] = useState(300);
 
   const loadMeshes = async () => {
     const nv = meshNvRef.current;
-    if (!nv) {
-      return;
-    }
 
     for (const loadedMesh of nv.meshes) {
       nv.removeMesh(loadedMesh);
@@ -56,9 +53,6 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
    */
   const changeMeshLayerProperties = () => {
     const nv = meshNvRef.current;
-    if (!nv) {
-      return;
-    }
 
     const desiredMeshes = visualState.meshes.filter((mesh) => mesh.visible);
 
@@ -76,8 +70,18 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
             ? 1.0
             : 0.0;
         nv.setMeshLayerProperty(loadedMesh.id, i, "opacity", opacity);
-        nv.setMeshLayerProperty(loadedMesh.id, i, "cal_min", visualState.globalMeshOverlaySettings.cal_min);
-        nv.setMeshLayerProperty(loadedMesh.id, i, "cal_max", visualState.globalMeshOverlaySettings.cal_max);
+        nv.setMeshLayerProperty(
+          loadedMesh.id,
+          i,
+          "cal_min",
+          visualState.globalMeshOverlaySettings.cal_min,
+        );
+        nv.setMeshLayerProperty(
+          loadedMesh.id,
+          i,
+          "cal_max",
+          visualState.globalMeshOverlaySettings.cal_max,
+        );
       }
     }
   };
@@ -88,6 +92,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       meshNvRef.current = new Niivue({ isColorbar: true });
       const nv = meshNvRef.current;
       nv.attachToCanvas(meshCanvas.current);
+      nv.setHighResolutionCapable(visualState.highResolutionCapable);
       await loadMeshes();
 
       // hack: load the first volume to force the meshes to use the same axes as the volumes.
@@ -103,7 +108,6 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
 
       // Niivue settings
       nv.setMeshThicknessOn2D(0);
-      nv.setHighResolutionCapable(false);
       nv.opts.isOrientCube = true;
     };
 
@@ -111,8 +115,9 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
       volumeNvRef.current = new Niivue();
       const nv = volumeNvRef.current;
-
       nv.attachToCanvas(volumeCanvas.current);
+      nv.setHighResolutionCapable(visualState.highResolutionCapable);
+
       await nv.loadVolumes(visualState.volumes);
       nv.setSliceType(3);
       nv.setSliceMM(true);
@@ -134,14 +139,19 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       });
     };
 
+    const updateSettings = () => {
+      [meshNvRef, volumeNvRef]
+        .map((ref) => ref.current)
+        .forEach((nv) => {
+          nv.setHighResolutionCapable(visualState.highResolutionCapable);
+        });
+    };
+
     /**
      * Sync the Niivue instance's volume opacities with the prop.
      */
     const updateVolumeOpacities = () => {
       const nv = volumeNvRef.current;
-      if (!nv) {
-        return;
-      }
       zipNvState(nv.volumes, visualState.volumes, "url").forEach(
         ([i, _vol, desiredState]) => {
           nv.setOpacity(i, desiredState.opacity);
@@ -166,13 +176,15 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
      * Mutate the current Niivue instance's loaded mesh and volume properties.
      */
     const update = () => {
+      updateSettings();
       updateVolumeOpacities();
       updateMeshes();
     };
 
     if (prevState.counter !== visualState.counter) {
       init();
-    } else {
+    } else if (meshNvRef.current.gl && volumeNvRef.current.gl) {
+      // update only when OpenGL is ready, which is not true during first render
       update();
     }
     setPrevState(visualState);
