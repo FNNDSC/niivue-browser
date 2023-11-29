@@ -5,6 +5,8 @@
 
 An opinionated [NiiVue](https://github.com/niivue/niivue) application for browsing surface meshes found in a filesystem directory.
 
+![Screenshot](screenshot.png)
+
 ## Usage
 
 Prepare your data to adhere to the [naming conventions](#naming-conventions). Then, run
@@ -33,6 +35,12 @@ docker run --rm --name niivue-browser \
   for the `lh.wm.mz3` surface. Rules for file name recognition are coded in [`src/lib/recognize.ts`](src/lib/recognize.ts).
 - An optional CSV file can be located in the data directory, which provides details about each subject. This CSV
   file must have a column titled "subject" (case-insensitive). Other columns may contain arbitrary string data.
+
+Download some sample data:
+
+```shell
+curl -sf https://stack.nerc.mghpcc.org:13808/swift/v1/AUTH_2dd3b02b267242d9b28f94a512ea9ede/fnndsc-public/samples/fetal_brain/sample_human_fetus_brain_mri_subplate_surfaces.tar.gz | tar xvz
+```
 
 ## Development
 
