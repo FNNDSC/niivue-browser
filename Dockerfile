@@ -18,9 +18,6 @@ RUN pnpm run build
 
 FROM docker.io/library/caddy:2.7.5-alpine
 
-# remove capabilities to make it work on OpenShift
-RUN setcap cap_net_bind_service=-ep /usr/bin/caddy
-
 COPY ./Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /app/dist
 
