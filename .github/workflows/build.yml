@@ -14,6 +14,37 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+      - name: Get pnpm store directory
+        id: pnpm
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test
+        run: pnpm run test
+      - name: Build
+        run: pnpm run build
+
       - name: Decide image tags
         id: info
         shell: python
@@ -78,7 +109,7 @@ jobs:
         if: (github.event_name == 'push' || github.event_name == 'release')
         with:
           context: .
-          file: ./Dockerfile
+          file: ./dist.Dockerfile
           tags: ${{ steps.info.outputs.tags_csv }}
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le
           push: ${{ steps.info.outputs.push }}
