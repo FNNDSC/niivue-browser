@@ -291,7 +291,7 @@ const MyPage = ({
       </MastheadToggle>
       <MastheadMain>
         {import.meta.env.PREACT_APP_NAME === undefined
-          ? "Fetal Surfaces Viewer"
+          ? "Niivue Brain Surface Browser"
           : import.meta.env.PREACT_APP_NAME}
       </MastheadMain>
       <MastheadContent>{headerToolbar}</MastheadContent>
