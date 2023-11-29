@@ -2,6 +2,7 @@ import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+  Button,
   Dropdown,
   DropdownItem,
   DropdownList,
@@ -19,12 +20,14 @@ import {
   PageSidebar,
   PageSidebarBody,
   PageToggleButton,
+  Popover,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
 } from "@patternfly/react-core";
 import BarsIcon from "@patternfly/react-icons/dist/esm/icons/bars-icon";
+import { Table, Tr, Tbody, Td } from "@patternfly/react-table";
 import * as React from "preact/compat";
 import { Client, Subject } from "../lib/client";
 import {
@@ -32,7 +35,6 @@ import {
   organizeUrlsAsState,
   centerNameOf,
 } from "../lib/visualstate";
-import style from "./style.module.css";
 import { produce } from "immer";
 
 /**
@@ -202,6 +204,39 @@ const MyPage = ({
     <Toolbar>
       <ToolbarContent>
         <ToolbarGroup align={{ default: "alignRight" }}>
+          {selectedSubject ? (
+            <ToolbarItem>
+              <Popover
+                headerContent={<div>{selectedSubject.name}</div>}
+                maxWidth="40rem"
+                bodyContent={
+                  // TS false positives, maybe issue with Preact?
+                  // @ts-ignore
+                  <Table variant="compact" borders={true}>
+                    {/* @ts-ignore */}
+                    <Tbody>
+                      {Object.entries(selectedSubject.info).map(
+                        ([key, value]) => (
+                          // @ts-ignore
+                          <Tr key={key}>
+                            {/* @ts-ignore */}
+                            <Td>{key}</Td>
+                            {/* @ts-ignore */}
+                            <Td>
+                              <code>{value}</code>
+                            </Td>
+                          </Tr>
+                        ),
+                      )}
+                    </Tbody>
+                  </Table>
+                }
+              >
+                <Button variant="secondary">Subject Info</Button>
+              </Popover>
+            </ToolbarItem>
+          ) : undefined}
+
           {subjects ? (
             <ToolbarItem>
               <SubjectDropdown
@@ -210,7 +245,7 @@ const MyPage = ({
                 onSubjectSelect={onSubjectSelect}
               />
             </ToolbarItem>
-          ) : null}
+          ) : undefined}
         </ToolbarGroup>
       </ToolbarContent>
     </Toolbar>

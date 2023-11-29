@@ -1,11 +1,6 @@
 import { Niivue } from "@niivue/niivue";
 import { useEffect, useRef, useState } from "preact/hooks";
-import {
-  HasUrl,
-  Mesh,
-  MeshOverlaySettings,
-  VisualState,
-} from "../lib/visualstate";
+import { Mesh, MeshOverlaySettings, VisualState } from "../lib/visualstate";
 import { NVMeshFromUrlOptions } from "@niivue/niivue";
 
 /**
