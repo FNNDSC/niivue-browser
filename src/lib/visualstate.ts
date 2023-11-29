@@ -95,8 +95,11 @@ class Mesh extends BrainHemiFile {
     });
   }
 
-  changeActiveLayer(activeLayerIndex: number): Mesh {
-    if (activeLayerIndex < 0 || activeLayerIndex >= this.layerUrls.length) {
+  changeActiveLayer(activeLayerIndex: number | null): Mesh {
+    if (
+      activeLayerIndex !== null &&
+      (activeLayerIndex < 0 || activeLayerIndex >= this.layerUrls.length)
+    ) {
       throw Error(
         `${activeLayerIndex} is not in the range [0, ${this.layerUrls.length})`,
       );

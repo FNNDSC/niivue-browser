@@ -48,6 +48,11 @@ import {
 import { produce } from "immer";
 
 /**
+ * A value which (hopefully) will never appear in a file name.
+ */
+const CENTERNAME_NEVER = "d801cf74-e90e-4a4e-8891-0a778fa94324";
+
+/**
  * A dropdown menu for selecting which subject we're looking at.
  */
 const SubjectDropdown = ({
@@ -370,6 +375,14 @@ const MyPage = ({
                 onChange={onCalMaxChanged}
                 value={visualState.globalMeshOverlaySettings.cal_max}
               ></Slider>
+
+              <div style={{ height: "1em" }}></div>
+              <Button
+                variant="secondary"
+                onClick={() => changeMeshOverlay(CENTERNAME_NEVER)}
+              >
+                Clear mesh overlay
+              </Button>
             </PanelMainBody>
           </PanelMain>
         </Panel>
@@ -417,7 +430,7 @@ function changeMeshOverlayState(
       const i = mesh.layerUrls.findIndex(
         (layerUrl) => centerNameOf(layerUrl) === centerName,
       );
-      return i === -1 ? mesh : mesh.changeActiveLayer(i);
+      return mesh.changeActiveLayer(i === -1 ? null : i);
     });
   });
 }
