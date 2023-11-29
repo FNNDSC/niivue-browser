@@ -1,5 +1,8 @@
 # Niivue Hemisphere Surface Browser
 
+[![MIT License](https://img.shields.io/github/license/fnndsc/niivue-browser)](./LICENSE)
+[![build](https://github.com/FNNDSC/niivue-browser/actions/workflows/build.yml/badge.svg)](https://github.com/FNNDSC/niivue-browser/actions/workflows/build.yml)
+
 An opinionated [NiiVue](https://github.com/niivue/niivue) application for browsing surface meshes found in a filesystem directory.
 
 ## Usage
@@ -22,7 +25,7 @@ docker run --rm --name niivue-browser \
 - Data files may represent: brain hemisphere volumes, hemisphere masks, hemisphere surfaces, or hemisphere surface data.
   For example, you could have a white matter surface mesh and sulcal depth data for that surface.
   Supported file formats include `.nii`, `.nii.gz`, and `.mz3`. We recommend using
-  [`pl-mni2common`](https://github.com/FNNDSC/pl-mni2common/) to convert from MNI formats (`.mnc`, `.obj` and `.txt`).
+  [`niivue-browser`](https://github.com/FNNDSC/niivue-browser/) to convert from MNI formats (`.mnc`, `.obj` and `.txt`).
 - Data file names must be prefixed with `lh.` for left hemispheres or `rh.` for right hemispheres.
 - Associated data files must have the same file name, not considering the `lh.`/`rh.` prefix nor file extension.
   For example, `lh.wm.mz3` and `rh.wm.mz3` will be recognized together as "wm" surfaces.
