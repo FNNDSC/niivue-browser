@@ -1,9 +1,9 @@
 :51733 {
-    handle_path /files/* {
-        root * ./data
-        file_server * browse
-    }
-    handle {
-        reverse_proxy localhost:5173
-    }
+	handle_path /files/* {
+		root * ./data
+		file_server * browse
+	}
+	handle {
+		reverse_proxy localhost:5173
+	}
 }

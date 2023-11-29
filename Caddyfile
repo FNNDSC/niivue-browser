@@ -1,0 +1,18 @@
+{
+	admin 0.0.0.0:2019
+	auto_https off
+	servers {
+		metrics
+	}
+}
+
+:8080 {
+	handle_path /files/* {
+		root * /data
+		file_server * browse
+	}
+	handle {
+		root * /app/dist
+		file_server
+	}
+}
