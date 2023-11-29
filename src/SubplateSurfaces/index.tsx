@@ -48,10 +48,13 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   };
 
   /**
-   * Sync the mesh layer opacities with the prop: the active layer of each mesh should have opacity=1.0,
-   * every other layer should have opacity=0.0.
+   * Sync the mesh layer opacities with the prop:
+   *
+   * - the active layer of each mesh should have opacity=1.0,
+   *   every other layer should have opacity=0.0.
+   * - update value of `cal_min` and `cal_max`
    */
-  const changeMeshLayerOpacities = () => {
+  const changeMeshLayerProperties = () => {
     const nv = meshNvRef.current;
     if (!nv) {
       return;
@@ -73,6 +76,8 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
             ? 1.0
             : 0.0;
         nv.setMeshLayerProperty(loadedMesh.id, i, "opacity", opacity);
+        nv.setMeshLayerProperty(loadedMesh.id, i, "cal_min", visualState.globalMeshOverlaySettings.cal_min);
+        nv.setMeshLayerProperty(loadedMesh.id, i, "cal_max", visualState.globalMeshOverlaySettings.cal_max);
       }
     }
   };
@@ -151,7 +156,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
         JSON.stringify(visibleUrls(prevState.meshes)) ===
         JSON.stringify(visibleUrls(visualState.meshes))
       ) {
-        changeMeshLayerOpacities();
+        changeMeshLayerProperties();
       } else {
         loadMeshes();
       }
