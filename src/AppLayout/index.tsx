@@ -259,7 +259,7 @@ const MyPage = ({
       <ToolbarContent>
         <ToolbarGroup align={{ default: "alignRight" }}>
           {/* Show a popover which contains a table of the subject's metadata, which comes from the CSV file. */}
-          {selectedSubject ? (
+          {selectedSubject && selectedSubject.info ? (
             <ToolbarItem>
               <Popover
                 headerContent={<div>{selectedSubject.name}</div>}
