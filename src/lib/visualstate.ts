@@ -43,11 +43,11 @@ abstract class BrainHemiFile {
    * - `_81920` suffix (MNI surface convention)
    */
   get centerName(): string {
-    return centerName(this.url);
+    return centerNameOf(this.url);
   }
 }
 
-function centerName(urlOrFilename: string) {
+function centerNameOf(urlOrFilename: string) {
   let name = filenameWithoutExtension(filenameOfUrl(urlOrFilename));
   if (name.startsWith("lh.") || name.startsWith("rh.")) {
     name = name.substring(3);
@@ -104,6 +104,13 @@ class Mesh extends BrainHemiFile {
     return produce(this, (draft) => {
       draft.activeLayerIndex = activeLayerIndex;
     });
+  }
+
+  get activeLayerUrl(): string | null {
+    if (this.activeLayerIndex === null) {
+      return null;
+    }
+    return this.layerUrls[this.activeLayerIndex];
   }
 }
 
@@ -196,7 +203,7 @@ function organizeUrlsAsState(
     side.volumes.map((url) => {
       // set the volume corresponding to the first mesh to be visible
       const opacity =
-        selectedCenterName === null || selectedCenterName == centerName(url)
+        selectedCenterName === null || selectedCenterName == centerNameOf(url)
           ? 1.0
           : 0.0;
       return new Volume(url, opacity);
@@ -229,4 +236,5 @@ export {
   INITIAL_STATE,
   MeshOverlaySettings,
   organizeUrlsAsState,
+  centerNameOf,
 };

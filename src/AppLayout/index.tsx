@@ -27,7 +27,11 @@ import {
 import BarsIcon from "@patternfly/react-icons/dist/esm/icons/bars-icon";
 import * as React from "preact/compat";
 import { Client, Subject } from "../lib/client";
-import { VisualState, organizeUrlsAsState, Mesh } from "../lib/visualstate";
+import {
+  VisualState,
+  organizeUrlsAsState,
+  centerNameOf,
+} from "../lib/visualstate";
 import style from "./style.module.css";
 import { produce } from "immer";
 
@@ -110,6 +114,25 @@ function ageOf(subject: Subject): string {
   return `${subject.info[ageKey]}`;
 }
 
+enum NavSelectionClass {
+  Mesh,
+  MeshOverlay,
+}
+
+/**
+ * Deserialized type of `itemId` for nav items in the sidebar.
+ */
+type NavSelection = {
+  /**
+   * Indicates which sidebar section the selected item is from.
+   */
+  action: NavSelectionClass;
+  /**
+   * Value of selected item.
+   */
+  centerName: string;
+};
+
 /**
  * The page sidebar and top bar which contains controls for the application state.
  */
@@ -148,8 +171,22 @@ const MyPage = ({
     onVisualStateChange(changeVisibleLayerState(visualState, centerName));
   };
 
-  const onNavSelect = (_event: any, result: { itemId: string | number }) =>
-    changeVisibleLayer(result.itemId as string);
+  const changeMeshOverlay = (centerName: string) => {
+    onVisualStateChange(changeMeshOverlayState(visualState, centerName));
+  };
+
+  const onNavSelect = (_event: any, result: { itemId: string | number }) => {
+    const selection: NavSelection = JSON.parse(result.itemId as string);
+    if (selection.action == NavSelectionClass.Mesh) {
+      changeVisibleLayer(selection.centerName);
+    } else if (selection.action == NavSelectionClass.MeshOverlay) {
+      changeMeshOverlay(selection.centerName);
+    } else {
+      console.warn(
+        `unreachable: ${selection.action} is not a valid NavSelectionClass`,
+      );
+    }
+  };
 
   useEffect(() => {
     // When the user selects a different subject from the drop-down menu, change the set of loaded URLs.
@@ -197,20 +234,37 @@ const MyPage = ({
 
   const sidebar = (
     <PageSidebar>
-      <PageSidebarBody className={style.sideBar}>
+      <PageSidebarBody>
         <Nav onSelect={onNavSelect}>
           <NavGroup title="Layer">
-            {leftSurfaces.map((mesh) => {
-              return (
-                <NavItem
-                  preventDefault
-                  itemId={mesh.centerName}
-                  isActive={mesh.visible}
-                >
-                  {mesh.centerName}
-                </NavItem>
-              );
-            })}
+            {leftSurfaces.map((mesh) => (
+              <NavItem
+                preventDefault
+                itemId={JSON.stringify({
+                  action: NavSelectionClass.Mesh,
+                  centerName: mesh.centerName,
+                })}
+                isActive={mesh.visible}
+              >
+                {mesh.centerName}
+              </NavItem>
+            ))}
+          </NavGroup>
+          <NavGroup title="Overlays">
+            {leftSurfaces[0]
+              ? leftSurfaces[0].layerUrls.map((layerUrl) => (
+                  <NavItem
+                    preventDefault
+                    itemId={JSON.stringify({
+                      action: NavSelectionClass.MeshOverlay,
+                      centerName: centerNameOf(layerUrl),
+                    })}
+                    isActive={leftSurfaces[0].activeLayerUrl === layerUrl}
+                  >
+                    {centerNameOf(layerUrl)}
+                  </NavItem>
+                ))
+              : ""}
           </NavGroup>
         </Nav>
       </PageSidebarBody>
@@ -233,6 +287,7 @@ function changeVisibleLayerState(
   visualState: VisualState,
   centerName: string,
 ): VisualState {
+  // TODO test me
   return produce(visualState, (draft) => {
     draft.meshes = visualState.meshes.map((mesh) =>
       mesh.changeVisible(centerName === mesh.centerName),
@@ -243,6 +298,24 @@ function changeVisibleLayerState(
   });
 }
 
+/**
+ * Changes which mesh overlays are visible, based on which ones match the given `centerName`.
+ */
+function changeMeshOverlayState(
+  visualState: VisualState,
+  centerName: string,
+): VisualState {
+  // TODO test me
+  return produce(visualState, (draft) => {
+    draft.meshes = visualState.meshes.map((mesh) => {
+      const i = mesh.layerUrls.findIndex(
+        (layerUrl) => centerNameOf(layerUrl) === centerName,
+      );
+      return i === -1 ? mesh : mesh.changeActiveLayer(i);
+    });
+  });
+}
+
 export default MyPage;
 
-export { changeVisibleLayerState };
+export { changeVisibleLayerState, changeMeshOverlayState };
