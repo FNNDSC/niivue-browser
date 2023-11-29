@@ -349,7 +349,7 @@ const MyPage = ({
             <PanelMainBody>
               <Text component={TextVariants.h3}>cal_min</Text>
               <Slider
-                min={0}
+                min={-20}
                 max={visualState.globalMeshOverlaySettings.cal_max}
                 onChange={onCalMinChanged}
                 value={visualState.globalMeshOverlaySettings.cal_min}
