@@ -233,6 +233,14 @@ function addMeshOverlaySettings(
 }
 
 function hideAllButOneMeshLayerColorbar(nv: Niivue) {
+  if (!nv.meshes) {
+    return;
+  }
+
+  for (let v = 1; v < nv.meshes[0].layers.length; v++) {
+    nv.setMeshLayerProperty(nv.meshes[0].id, v, "colorbarVisible", false);
+  }
+
   for (let i = 1; i < nv.meshes.length; i++) {
     nv.setMeshProperty(nv.meshes[i].id, "colorbarVisible", false);
 
