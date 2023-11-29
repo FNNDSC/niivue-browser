@@ -1,8 +1,11 @@
+// N.B. ts(dash)ignore is used, probably preact problem.
+
 import { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import {
   Button,
+  Divider,
   Dropdown,
   DropdownItem,
   DropdownList,
@@ -20,11 +23,18 @@ import {
   PageSidebar,
   PageSidebarBody,
   PageToggleButton,
+  Panel,
+  PanelHeader,
+  PanelMain,
+  PanelMainBody,
   Popover,
+  Slider,
   Toolbar,
   ToolbarContent,
   ToolbarGroup,
   ToolbarItem,
+  Text,
+  TextVariants,
 } from "@patternfly/react-core";
 import BarsIcon from "@patternfly/react-icons/dist/esm/icons/bars-icon";
 import { Table, Tr, Tbody, Td } from "@patternfly/react-table";
@@ -155,7 +165,9 @@ const MyPage = ({
   onVisualStateChange: (VisualState) => void;
   children: ComponentChildren;
 }) => {
-  let [prevSubjectName, setPrevSubjectName] = useState<string | null>(null);
+  const [prevSubjectName, setPrevSubjectName] = useState<string | null>(null);
+  const calMinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const calMaxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const leftSurfaces = visualState.meshes.filter((mesh) =>
     mesh.name.startsWith("lh."),
@@ -175,6 +187,40 @@ const MyPage = ({
 
   const changeMeshOverlay = (centerName: string) => {
     onVisualStateChange(changeMeshOverlayState(visualState, centerName));
+  };
+
+  const onCalMinChanged = (_e: any, value: number) => {
+    if (calMinTimeoutRef.current !== null) {
+      clearTimeout(calMinTimeoutRef.current);
+    }
+    calMinTimeoutRef.current = setTimeout(() => {
+      calMinTimeoutRef.current = null;
+      changeCalMin(value);
+    }, 500);
+  };
+
+  const onCalMaxChanged = (_e: any, value: number) => {
+    if (calMaxTimeoutRef.current !== null) {
+      clearTimeout(calMaxTimeoutRef.current);
+    }
+    calMaxTimeoutRef.current = setTimeout(() => {
+      calMaxTimeoutRef.current = null;
+      changeCalMax(value);
+    }, 500);
+  };
+
+  const changeCalMin = (value: number) => {
+    const nextState = produce(visualState, (draft) => {
+      draft.globalMeshOverlaySettings.cal_min = value;
+    });
+    onVisualStateChange(nextState);
+  };
+
+  const changeCalMax = (value: number) => {
+    const nextState = produce(visualState, (draft) => {
+      draft.globalMeshOverlaySettings.cal_max = value;
+    });
+    onVisualStateChange(nextState);
   };
 
   const onNavSelect = (_event: any, result: { itemId: string | number }) => {
@@ -210,7 +256,6 @@ const MyPage = ({
                 headerContent={<div>{selectedSubject.name}</div>}
                 maxWidth="40rem"
                 bodyContent={
-                  // TS false positives, maybe issue with Preact?
                   // @ts-ignore
                   <Table variant="compact" borders={true}>
                     {/* @ts-ignore */}
@@ -223,7 +268,7 @@ const MyPage = ({
                             <Td>{key}</Td>
                             {/* @ts-ignore */}
                             <Td>
-                              <code>{value}</code>
+                              <code>{value as string}</code>
                             </Td>
                           </Tr>
                         ),
@@ -285,7 +330,7 @@ const MyPage = ({
               </NavItem>
             ))}
           </NavGroup>
-          <NavGroup title="Overlays">
+          <NavGroup title="Overlay Selection">
             {leftSurfaces[0]
               ? leftSurfaces[0].layerUrls.map((layerUrl) => (
                   <NavItem
@@ -299,9 +344,35 @@ const MyPage = ({
                     {centerNameOf(layerUrl)}
                   </NavItem>
                 ))
-              : ""}
+              : undefined}
           </NavGroup>
         </Nav>
+      </PageSidebarBody>
+      <PageSidebarBody>
+        {/* @ts-ignore */}
+        <Panel>
+          <PanelHeader>Overlay Settings</PanelHeader>
+          <Divider />
+          <PanelMain>
+            <PanelMainBody>
+              <Text component={TextVariants.h3}>cal_min</Text>
+              <Slider
+                min={0}
+                max={visualState.globalMeshOverlaySettings.cal_max}
+                onChange={onCalMinChanged}
+                value={visualState.globalMeshOverlaySettings.cal_min}
+              ></Slider>
+
+              <Text component={TextVariants.h3}>cal_max</Text>
+              <Slider
+                min={visualState.globalMeshOverlaySettings.cal_min}
+                max={20}
+                onChange={onCalMaxChanged}
+                value={visualState.globalMeshOverlaySettings.cal_max}
+              ></Slider>
+            </PanelMainBody>
+          </PanelMain>
+        </Panel>
       </PageSidebarBody>
     </PageSidebar>
   );
