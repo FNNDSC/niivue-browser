@@ -83,7 +83,6 @@ jobs:
               for k, v in outputs.items():
                   out.write(f'{k}={v}\n')
 
-      - uses: actions/checkout@v4
         # QEMU is used for non-x86_64 builds
       - uses: docker/setup-qemu-action@v3
         # buildx adds additional features to docker build
