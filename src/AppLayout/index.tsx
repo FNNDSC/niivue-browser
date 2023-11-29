@@ -101,6 +101,7 @@ const SubjectDropdown = ({
         isOpen={isOpen}
         ouiaId="BasicDropdown"
         shouldFocusToggleOnSelect
+        isScrollable
       >
         <DropdownList>
           {subjects.map((subject) => (
