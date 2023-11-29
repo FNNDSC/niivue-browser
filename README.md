@@ -27,7 +27,7 @@ docker run --rm --name niivue-browser \
 - Associated data files must have the same file name, not considering the `lh.`/`rh.` prefix nor file extension.
   For example, `lh.wm.mz3` and `rh.wm.mz3` will be recognized together as "wm" surfaces.
   Likewise, `lh.wm.disterr.mz3`, `lh.wm.smtherr.mz3`, `lh.wm.tlink_10mm.mz3` will be recognized as surface data
-  for the `lh.wm.mz3` surface.
+  for the `lh.wm.mz3` surface. Rules for file name recognition are coded in [`src/lib/recognize.ts`](src/lib/recognize.ts).
 - An optional CSV file can be located in the data directory, which provides details about each subject. This CSV
   file must have a column titled "subject" (case-insensitive). Other columns may contain arbitrary string data.
 
