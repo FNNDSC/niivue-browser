@@ -5,6 +5,8 @@
 
 An opinionated [NiiVue](https://github.com/niivue/niivue) application for browsing surface meshes found in a filesystem directory.
 
+Demo: https://niivue-hosting-of-medical-image-analysis-platform-dcb83b.apps.shift.nerc.mghpcc.org/
+
 ![Screenshot](screenshot.png)
 
 ## Usage
@@ -48,3 +50,9 @@ curl -sf https://stack.nerc.mghpcc.org:13808/swift/v1/AUTH_2dd3b02b267242d9b28f9
    data for a single subject. Optionally, place a file called `./data/*.csv` which provides metadata about subjects.
 2. Run `pnpm run dev` and `pnpm run dev:proxy` concurrently.
 3. In your browser, open up `http://localhost:51733/`
+
+## Deployment
+
+Examples for how to deploy on Kubernetes/OpenShift can be found here:
+
+https://github.com/FNNDSC/NERC/tree/master/niivue-browser
