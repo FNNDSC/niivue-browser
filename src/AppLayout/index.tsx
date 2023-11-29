@@ -255,32 +255,13 @@ const MyPage = ({
     <Toolbar>
       <ToolbarContent>
         <ToolbarGroup align={{ default: "alignRight" }}>
+          {/* Show a popover which contains a table of the subject's metadata, which comes from the CSV file. */}
           {selectedSubject ? (
             <ToolbarItem>
               <Popover
                 headerContent={<div>{selectedSubject.name}</div>}
                 maxWidth="40rem"
-                bodyContent={
-                  // @ts-ignore
-                  <Table variant="compact" borders={true}>
-                    {/* @ts-ignore */}
-                    <Tbody>
-                      {Object.entries(selectedSubject.info).map(
-                        ([key, value]) => (
-                          // @ts-ignore
-                          <Tr key={key}>
-                            {/* @ts-ignore */}
-                            <Td>{key}</Td>
-                            {/* @ts-ignore */}
-                            <Td>
-                              <code>{value as string}</code>
-                            </Td>
-                          </Tr>
-                        ),
-                      )}
-                    </Tbody>
-                  </Table>
-                }
+                bodyContent={createTable(selectedSubject.info)}
               >
                 <Button variant="secondary">Subject Info</Button>
               </Popover>
@@ -321,7 +302,8 @@ const MyPage = ({
     <PageSidebar>
       <PageSidebarBody>
         <Nav onSelect={onNavSelect}>
-          <NavGroup title="Layer">
+          {/* Brain layer selection, e.g. white matter, gray matter, cortical plate, subplate, ... */}
+          <NavGroup title="Brain Layer">
             {leftSurfaces.map((mesh) => (
               <NavItem
                 preventDefault
@@ -335,6 +317,7 @@ const MyPage = ({
               </NavItem>
             ))}
           </NavGroup>
+          {/* Overlay selection e.g. cortical thickness, curvature, sulcal depth, ... */}
           <NavGroup title="Overlay Selection">
             {leftSurfaces[0]
               ? leftSurfaces[0].layerUrls.map((layerUrl) => (
@@ -356,6 +339,7 @@ const MyPage = ({
       <PageSidebarBody>
         {/* @ts-ignore */}
         <Panel>
+          {/* Overlay settings e.g. min and max values */}
           <PanelHeader>Overlay Settings</PanelHeader>
           <Divider />
           <PanelMain>
@@ -433,6 +417,28 @@ function changeMeshOverlayState(
       return mesh.changeActiveLayer(i === -1 ? null : i);
     });
   });
+}
+
+function createTable(data: any) {
+  return (
+    // @ts-ignore
+    <Table variant="compact" borders={true}>
+      {/* @ts-ignore */}
+      <Tbody>
+        {Object.entries(data).map(([key, value]) => (
+          // @ts-ignore
+          <Tr key={key}>
+            {/* @ts-ignore */}
+            <Td>{key}</Td>
+            {/* @ts-ignore */}
+            <Td>
+              <code>{value as string}</code>
+            </Td>
+          </Tr>
+        ))}
+      </Tbody>
+    </Table>
+  );
 }
 
 export default MyPage;
