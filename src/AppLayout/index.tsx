@@ -177,6 +177,8 @@ const MyPage = ({
   const leftSurfaces = visualState.meshes.filter((mesh) =>
     mesh.name.startsWith("lh."),
   );
+  const firstVisibleLeftSurface =
+    leftSurfaces.find((mesh) => mesh.visible) || null;
 
   /**
    * Get the URLs of the subject's files and return them as a NVState.
@@ -319,8 +321,8 @@ const MyPage = ({
           </NavGroup>
           {/* Overlay selection e.g. cortical thickness, curvature, sulcal depth, ... */}
           <NavGroup title="Overlay Selection">
-            {leftSurfaces[0]
-              ? leftSurfaces[0].layerUrls.map((layerUrl) => (
+            {firstVisibleLeftSurface
+              ? firstVisibleLeftSurface.layerUrls.map((layerUrl) => (
                   <NavItem
                     preventDefault
                     itemId={JSON.stringify({

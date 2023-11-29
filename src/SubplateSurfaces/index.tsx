@@ -28,74 +28,90 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
 
   const [lowerCanvasHeight, setLowerCanvasHeight] = useState(300);
 
-  /**
-   * Compare the prop with Niivue's internal state. Unload any meshes which are changed or removed,
-   * then load all visible meshes.
-   */
-  const changeMeshes = async () => {
+  const loadMeshes = async () => {
     const nv = meshNvRef.current;
     if (!nv) {
       return;
     }
 
-    const desiredMeshes = visualState.meshes
+    for (const loadedMesh of nv.meshes) {
+      nv.removeMesh(loadedMesh);
+    }
+
+    const meshOptions = visualState.meshes
       .filter((mesh) => mesh.visible)
       .map((mesh) =>
         addMeshOverlaySettings(mesh, visualState.globalMeshOverlaySettings),
       );
+    await nv.loadMeshes(meshOptions);
+    hideAllButOneMeshLayerColorbar(nv);
+  };
+
+  /**
+   * Sync the mesh layer opacities with the prop: the active layer of each mesh should have opacity=1.0,
+   * every other layer should have opacity=0.0.
+   */
+  const changeMeshLayerOpacities = () => {
+    const nv = meshNvRef.current;
+    if (!nv) {
+      return;
+    }
+
+    const desiredMeshes = visualState.meshes.filter((mesh) => mesh.visible);
 
     for (const loadedMesh of nv.meshes) {
       const desiredMesh = desiredMeshes.find(
         (mesh) => mesh.name === loadedMesh.name,
       );
-      // mesh is loaded, but it is changed thus should be removed.
-      if (
-        desiredMesh === undefined ||
-        meshesAreDifferent(desiredMesh, loadedMesh)
-      ) {
-        nv.removeMesh(loadedMesh);
+      if (desiredMesh === undefined) {
+        continue;
+      }
+      for (let i = 0; i < loadedMesh.layers.length; i++) {
+        const opacity =
+          desiredMesh.activeLayerIndex !== null &&
+          desiredMesh.activeLayerIndex === i
+            ? 1.0
+            : 0.0;
+        nv.setMeshLayerProperty(loadedMesh.id, i, "opacity", opacity);
       }
     }
-
-    await nv.loadMeshes(desiredMeshes);
-    hideAllButOneMeshLayerColorbar(nv);
   };
 
   useEffect(() => {
     const initMeshCanvas = async () => {
       // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
       meshNvRef.current = new Niivue({ isColorbar: true });
-      const meshNv = meshNvRef.current;
-      meshNv.attachToCanvas(meshCanvas.current);
-      await changeMeshes();
+      const nv = meshNvRef.current;
+      nv.attachToCanvas(meshCanvas.current);
+      await loadMeshes();
 
       // hack: load the first volume to force the meshes to use the same axes as the volumes.
       // https://github.com/niivue/niivue/issues/759
       if (visualState.volumes) {
-        await meshNv.loadVolumes([
+        await nv.loadVolumes([
           { url: visualState.volumes[0].url, opacity: 0.0 },
         ]);
         // WARNING: using undocumented functions
-        meshNv.volumes[0].colorbarVisible = false;
-        meshNv.updateGLVolume();
+        nv.volumes[0].colorbarVisible = false;
+        nv.updateGLVolume();
       }
 
       // Niivue settings
-      meshNv.setMeshThicknessOn2D(0);
-      meshNv.setHighResolutionCapable(false);
-      meshNv.opts.isOrientCube = true;
+      nv.setMeshThicknessOn2D(0);
+      nv.setHighResolutionCapable(false);
+      nv.opts.isOrientCube = true;
     };
 
     const initVolumeCanvas = async () => {
       // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
       volumeNvRef.current = new Niivue();
-      const volumeNv = volumeNvRef.current;
+      const nv = volumeNvRef.current;
 
-      volumeNv.attachToCanvas(volumeCanvas.current);
-      await volumeNv.loadVolumes(visualState.volumes);
-      volumeNv.setSliceType(3);
-      volumeNv.setSliceMM(true);
-      volumeNv.opts.multiplanarForceRender = true;
+      nv.attachToCanvas(volumeCanvas.current);
+      await nv.loadVolumes(visualState.volumes);
+      nv.setSliceType(3);
+      nv.setSliceMM(true);
+      nv.opts.multiplanarForceRender = true;
     };
 
     /**
@@ -128,12 +144,25 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       );
     };
 
+    const updateMeshes = () => {
+      const visibleUrls = (meshes: Mesh[]) =>
+        meshes.filter((mesh) => mesh.visible).map((mesh) => mesh.url);
+      if (
+        JSON.stringify(visibleUrls(prevState.meshes)) ===
+        JSON.stringify(visibleUrls(visualState.meshes))
+      ) {
+        changeMeshLayerOpacities();
+      } else {
+        loadMeshes();
+      }
+    };
+
     /**
      * Mutate the current Niivue instance's loaded mesh and volume properties.
      */
     const update = () => {
       updateVolumeOpacities();
-      changeMeshes();
+      updateMeshes();
     };
 
     if (prevState.counter !== visualState.counter) {
@@ -188,28 +217,29 @@ function addMeshOverlaySettings(
   mesh: Mesh,
   meshOverlaySettings: MeshOverlaySettings,
 ): NVMeshFromUrlOptions {
+  const layers = mesh.layerUrls.map((url) => {
+    return { url, opacity: 0.0, ...meshOverlaySettings };
+  });
+  if (mesh.activeLayerIndex !== null) {
+    layers[mesh.activeLayerIndex].opacity = 1.0;
+  }
   return {
     url: mesh.url,
     name: mesh.name,
     opacity: mesh.opacity,
     visible: mesh.visible,
-    layers: mesh.activeLayerIndex
-      ? [{ url: mesh.layerUrls[mesh.activeLayerIndex], ...meshOverlaySettings }]
-      : [],
+    layers,
   };
 }
 
 function hideAllButOneMeshLayerColorbar(nv: Niivue) {
   for (let i = 1; i < nv.meshes.length; i++) {
     nv.setMeshProperty(nv.meshes[i].id, "colorbarVisible", false);
-  }
-}
 
-function meshesAreDifferent(
-  a: NVMeshFromUrlOptions,
-  b: NVMeshFromUrlOptions,
-): boolean {
-  return false; // TODO
+    for (let v = 0; v < nv.meshes[i].layers.length; v++) {
+      nv.setMeshLayerProperty(nv.meshes[i].id, v, "colorbarVisible", false);
+    }
+  }
 }
 
 export default SubplateSurfaces;

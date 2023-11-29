@@ -52,13 +52,7 @@ export function App() {
       selectedSubject={selectedSubject}
       onSubjectSelect={setSelectedSubject}
       visualState={visualState}
-      onVisualStateChange={(s) => {
-        console.log(
-          "setting state! stuff is: " +
-            JSON.stringify(visualState.globalMeshOverlaySettings),
-        );
-        setVisualState(s);
-      }}
+      onVisualStateChange={setVisualState}
     >
       <SubplateSurfaces visualState={visualState} />
     </AppLayout>
