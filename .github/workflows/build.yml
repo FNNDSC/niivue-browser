@@ -113,7 +113,6 @@ jobs:
           tags: ${{ steps.info.outputs.tags_csv }}
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7,linux/ppc64le
           push: ${{ steps.info.outputs.push }}
-          cache-to: type=gha,mode=max
 
       - name: Update DockerHub description
         if: (github.event_name == 'push' || github.event_name == 'release')
