@@ -172,8 +172,6 @@ const MyPage = ({
   children: ComponentChildren;
 }) => {
   const [prevSubjectName, setPrevSubjectName] = useState<string | null>(null);
-  const calMinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const calMaxTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const leftSurfaces = visualState.meshes.filter((mesh) =>
     mesh.name.startsWith("lh."),
@@ -198,23 +196,11 @@ const MyPage = ({
   };
 
   const onCalMinChanged = (_e: any, value: number) => {
-    if (calMinTimeoutRef.current !== null) {
-      clearTimeout(calMinTimeoutRef.current);
-    }
-    calMinTimeoutRef.current = setTimeout(() => {
-      calMinTimeoutRef.current = null;
-      changeCalMin(value);
-    }, 500);
+    changeCalMin(value);
   };
 
   const onCalMaxChanged = (_e: any, value: number) => {
-    if (calMaxTimeoutRef.current !== null) {
-      clearTimeout(calMaxTimeoutRef.current);
-    }
-    calMaxTimeoutRef.current = setTimeout(() => {
-      calMaxTimeoutRef.current = null;
-      changeCalMax(value);
-    }, 500);
+    changeCalMax(value);
   };
 
   const changeCalMin = (value: number) => {
@@ -350,14 +336,14 @@ const MyPage = ({
               <Text component={TextVariants.h3}>cal_min</Text>
               <Slider
                 min={-20}
-                max={visualState.globalMeshOverlaySettings.cal_max}
+                max={20}
                 onChange={onCalMinChanged}
                 value={visualState.globalMeshOverlaySettings.cal_min}
               ></Slider>
 
               <Text component={TextVariants.h3}>cal_max</Text>
               <Slider
-                min={visualState.globalMeshOverlaySettings.cal_min}
+                min={0}
                 max={20}
                 onChange={onCalMaxChanged}
                 value={visualState.globalMeshOverlaySettings.cal_max}
