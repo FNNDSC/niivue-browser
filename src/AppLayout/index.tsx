@@ -47,11 +47,15 @@ import {
   centerNameOf,
 } from "../lib/visualstate";
 import { produce } from "immer";
+import { Niivue } from "@niivue/niivue";
 
 /**
  * A value which (hopefully) will never appear in a file name.
  */
 const CENTERNAME_NEVER = "d801cf74-e90e-4a4e-8891-0a778fa94324";
+
+const NIIVUE = new Niivue();
+const COLORMAPS = NIIVUE.colormaps(true);
 
 /**
  * A dropdown menu for selecting which subject we're looking at.
@@ -59,11 +63,11 @@ const CENTERNAME_NEVER = "d801cf74-e90e-4a4e-8891-0a778fa94324";
 const SubjectDropdown = ({
   subjects,
   selectedSubject,
-  onSubjectSelect,
+  onSelect,
 }: {
   subjects: Subject[];
   selectedSubject?: Subject;
-  onSubjectSelect: (value: Subject) => any;
+  onSelect: (value: Subject) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -71,7 +75,7 @@ const SubjectDropdown = ({
     setIsOpen(!isOpen);
   };
 
-  const onSelect = (
+  const onDropdownSelect = (
     _event: MouseEvent | undefined,
     value: string | undefined,
   ) => {
@@ -81,7 +85,7 @@ const SubjectDropdown = ({
     }
     const selected = subjects.find((subject) => subject.name === value);
     if (selected !== undefined) {
-      onSubjectSelect(selected);
+      onSelect(selected);
     }
   };
 
@@ -97,7 +101,7 @@ const SubjectDropdown = ({
             {selectedSubject.name}
           </MenuToggle>
         )}
-        onSelect={onSelect}
+        onSelect={onDropdownSelect}
         onOpenChange={(isOpen: boolean) => setIsOpen(isOpen)}
         isOpen={isOpen}
         ouiaId="BasicDropdown"
@@ -132,6 +136,62 @@ function ageOf(subject: Subject): string {
   );
   return `${subject.info[ageKey]}`;
 }
+
+const ColormapDropdown = ({
+  selectedColormap,
+  onSelect,
+}: {
+  selectedColormap: string;
+  onSelect: (colormap: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onToggleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const onDropdownSelect = (
+    _event: MouseEvent | undefined,
+    value: string | undefined,
+  ) => {
+    setIsOpen(false);
+    if (value === undefined) {
+      return;
+    }
+    onSelect(value);
+  };
+
+  return (
+    <>
+      <Dropdown
+        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+          <MenuToggle
+            ref={toggleRef}
+            onClick={onToggleClick}
+            isExpanded={isOpen}
+            isFullWidth
+          >
+            {selectedColormap}
+          </MenuToggle>
+        )}
+        onSelect={onDropdownSelect}
+        onOpenChange={(isOpen: boolean) => setIsOpen(isOpen)}
+        isOpen={isOpen}
+        ouiaId="BasicDropdown"
+        shouldFocusToggleOnSelect
+        isScrollable
+      >
+        <DropdownList>
+          {COLORMAPS.map((colormapName) => (
+            <DropdownItem value={colormapName} key={colormapName}>
+              {colormapName}
+            </DropdownItem>
+          ))}
+        </DropdownList>
+      </Dropdown>
+    </>
+  );
+};
 
 enum NavSelectionClass {
   Mesh,
@@ -218,6 +278,13 @@ const MyPage = ({
     onVisualStateChange(nextState);
   };
 
+  const changeColormap = (value: string) => {
+    const nextState = produce(visualState, (draft) => {
+      draft.globalMeshOverlaySettings.colormap = value;
+    });
+    onVisualStateChange(nextState);
+  };
+
   const changeCalMin = (value: number) => {
     const nextState = produce(visualState, (draft) => {
       draft.globalMeshOverlaySettings.cal_min = value;
@@ -277,7 +344,7 @@ const MyPage = ({
               <SubjectDropdown
                 subjects={subjects}
                 selectedSubject={selectedSubject}
-                onSubjectSelect={onSubjectSelect}
+                onSelect={onSubjectSelect}
               />
             </ToolbarItem>
           ) : undefined}
@@ -365,6 +432,15 @@ const MyPage = ({
                 onChange={onCalMaxChanged}
                 value={visualState.globalMeshOverlaySettings.cal_max}
               ></Slider>
+
+              {smallSkip}
+
+              <ColormapDropdown
+                onSelect={changeColormap}
+                selectedColormap={
+                  visualState.globalMeshOverlaySettings.colormap
+                }
+              />
 
               {smallSkip}
 

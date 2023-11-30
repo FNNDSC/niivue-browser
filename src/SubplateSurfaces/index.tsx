@@ -69,19 +69,13 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
           desiredMesh.activeLayerIndex === i
             ? 1.0
             : 0.0;
-        nv.setMeshLayerProperty(loadedMesh.id, i, "opacity", opacity);
-        nv.setMeshLayerProperty(
-          loadedMesh.id,
-          i,
-          "cal_min",
-          visualState.globalMeshOverlaySettings.cal_min,
-        );
-        nv.setMeshLayerProperty(
-          loadedMesh.id,
-          i,
-          "cal_max",
-          visualState.globalMeshOverlaySettings.cal_max,
-        );
+        const properties = {
+          opacity,
+          ...visualState.globalMeshOverlaySettings,
+        };
+        Object.entries(properties).forEach(([key, value]) => {
+          nv.setMeshLayerProperty(loadedMesh.id, i, key, value);
+        });
       }
     }
   };
