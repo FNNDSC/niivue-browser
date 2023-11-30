@@ -167,7 +167,10 @@ type VisualState = {
    */
   globalMeshOverlaySettings: MeshOverlaySettings;
 
+  // Global Niivue options
+
   highResolutionCapable: boolean;
+  isOrientCube: boolean;
 };
 
 const INITIAL_STATE: VisualState = {
@@ -182,6 +185,7 @@ const INITIAL_STATE: VisualState = {
     cal_max: 10.0,
   },
   highResolutionCapable: false,
+  isOrientCube: true,
 };
 Object.freeze(INITIAL_STATE);
 

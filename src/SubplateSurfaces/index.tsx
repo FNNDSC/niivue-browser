@@ -108,7 +108,6 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
 
       // Niivue settings
       nv.setMeshThicknessOn2D(0);
-      nv.opts.isOrientCube = true;
     };
 
     const initVolumeCanvas = async () => {
@@ -129,6 +128,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
      */
     const init = async () => {
       await Promise.all([initMeshCanvas(), initVolumeCanvas()]);
+      updateNiivueSettings();
       volumeNvRef.current.syncWith(meshNvRef.current, {
         "3d": true,
         "2d": true,
@@ -139,12 +139,16 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       });
     };
 
-    const updateSettings = () => {
+    /**
+     * Change Niivue settings (which are unrelated to any specific data file).
+     */
+    const updateNiivueSettings = () => {
       [meshNvRef, volumeNvRef]
         .map((ref) => ref.current)
         .forEach((nv) => {
           nv.setHighResolutionCapable(visualState.highResolutionCapable);
         });
+      meshNvRef.current.opts.isOrientCube = visualState.isOrientCube;
     };
 
     /**
@@ -176,7 +180,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
      * Mutate the current Niivue instance's loaded mesh and volume properties.
      */
     const update = () => {
-      updateSettings();
+      updateNiivueSettings();
       updateVolumeOpacities();
       updateMeshes();
     };

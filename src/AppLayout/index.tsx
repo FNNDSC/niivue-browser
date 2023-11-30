@@ -1,7 +1,7 @@
 // N.B. ts(dash)ignore is used, probably preact problem.
 
 import { ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import {
   Button,
@@ -211,6 +211,13 @@ const MyPage = ({
     onVisualStateChange(nextState);
   };
 
+  const onOrientCubeCheckboxToggled = (_e: any, checked: boolean) => {
+    const nextState = produce(visualState, (draft) => {
+      draft.isOrientCube = checked;
+    });
+    onVisualStateChange(nextState);
+  };
+
   const changeCalMin = (value: number) => {
     const nextState = produce(visualState, (draft) => {
       draft.globalMeshOverlaySettings.cal_min = value;
@@ -366,6 +373,13 @@ const MyPage = ({
                 onChange={onHighResCheckboxToggled}
                 isChecked={visualState.highResolutionCapable}
                 label="High resolution"
+              />
+
+              <Checkbox
+                id="is-orient-cube"
+                onChange={onOrientCubeCheckboxToggled}
+                isChecked={visualState.isOrientCube}
+                label="Show orientation cube"
               />
 
               {smallSkip}
