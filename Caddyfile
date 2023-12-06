@@ -8,7 +8,7 @@
 
 :8080 {
 	handle_path /files/* {
-		root * /data
+		root * {$NIIVUEBROWSER_SUBJECTS_DIR:/data}
 		file_server * browse
 	}
 	handle {

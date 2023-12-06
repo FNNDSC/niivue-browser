@@ -16,7 +16,17 @@ Prepare your data to adhere to the [naming conventions](#naming-conventions). Th
 ```shell
 docker run --rm --name niivue-browser \
     -p 2019:2019 -p 8080:8080 \
-    -v "/path/to/your/data:/data:ro" \
+    -v "/path/on/host/to/your/data:/data:ro" \
+    ghcr.io/fnndsc/niivue-browser:latest
+```
+
+For whatever reason, you can change the container directory where data is served from by setting `NIIVUEBROWSER_SUBJECTS_DIR`.
+
+```shell
+docker run --rm --name niivue-browser \
+    -p 2019:2019 -p 8080:8080 \
+    -e NIIVUEBROWSER_SUBJECTS_DIR=/custom_dir
+    -v "/path/on/host/to/your/data:/custom_dir:ro" \
     ghcr.io/fnndsc/niivue-browser:latest
 ```
 
