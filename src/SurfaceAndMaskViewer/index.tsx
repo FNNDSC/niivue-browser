@@ -29,14 +29,8 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   const init = async () => {
     await Promise.all([initMeshCanvas(), initVolumeCanvas()]);
     syncNiivueSettings();
-    volumeNvRef.current.syncWith(meshNvRef.current, {
-      "3d": true,
-      "2d": true,
-    });
-    meshNvRef.current.syncWith(volumeNvRef.current, {
-      "3d": true,
-      "2d": true,
-    });
+    volumeNvRef.current.broadcastTo(meshNvRef.current);
+    meshNvRef.current.broadcastTo(volumeNvRef.current);
   };
 
   const initVolumeCanvas = async () => {
