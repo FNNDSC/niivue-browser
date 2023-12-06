@@ -11,11 +11,6 @@ import { NVMeshFromUrlOptions } from "@niivue/niivue";
  *
  * When the prop `nvState` changes: if `nvState.counter` is changed, then the NiiVues are rerendered.
  * Otherwise, the NiiVue instances are mutated to reflect the updates to `nvState`.
- *
- * Niivue bugs to be aware of:
- *
- * - mesh visible and opacity don't do anything, so we need to load/unload them. https://github.com/niivue/niivue/issues/762
- * - mesh center of rotation isn't always right. https://github.com/niivue/niivue/issues/759
  */
 const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   const [prevState, setPrevState] = useState<VisualState>(visualState);
@@ -88,17 +83,6 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
       nv.attachToCanvas(meshCanvas.current);
       nv.setHighResolutionCapable(visualState.highResolutionCapable);
       await loadMeshes();
-
-      // hack: load the first volume to force the meshes to use the same axes as the volumes.
-      // https://github.com/niivue/niivue/issues/759
-      if (visualState.volumes) {
-        await nv.loadVolumes([
-          { url: visualState.volumes[0].url, opacity: 0.0 },
-        ]);
-        // WARNING: using undocumented functions
-        nv.volumes[0].colorbarVisible = false;
-        nv.updateGLVolume();
-      }
 
       // Niivue settings
       nv.setMeshThicknessOn2D(0);
