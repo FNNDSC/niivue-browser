@@ -52,24 +52,19 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
     const nv = meshNvRef.current;
     nv.attachToCanvas(meshCanvas.current);
     nv.setHighResolutionCapable(visualState.highResolutionCapable);
-    await loadMeshes();
+    await initMeshes();
 
     // Niivue settings
     nv.setMeshThicknessOn2D(0);
   };
 
   /**
-   * Unload all meshes, then load only the visible ones.
+   * Load all meshes (for the first time) from `visualState.meshes` to the Niivue instance.
    */
-  const loadMeshes = async () => {
+  const initMeshes = async () => {
     const nv = meshNvRef.current;
 
-    for (const loadedMesh of nv.meshes) {
-      nv.removeMesh(loadedMesh);
-    }
-
     const meshOptions = visualState.meshes
-      .filter((mesh) => mesh.visible)
       .map((mesh) =>
         addMeshOverlaySettings(mesh, visualState.globalMeshOverlaySettings),
       );
@@ -81,53 +76,39 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
    * Sync the Niivue instance's meshes state with `visualState.meshes`.
    */
   const syncMeshes = () => {
-    const visibleUrls = (meshes: Mesh[]) =>
-      meshes.filter((mesh) => mesh.visible).map((mesh) => mesh.url);
-    if (
-      JSON.stringify(visibleUrls(prevState.meshes)) ===
-      JSON.stringify(visibleUrls(visualState.meshes))
-    ) {
-      syncMeshLayerProperties();
-    } else {
-      loadMeshes();
-    }
+    const nv = meshNvRef.current;
+    zipNvState(nv.meshes, visualState.meshes, "name").forEach(
+      ([_i, loadedMesh, desiredState]) => {
+        nv.setMeshProperty(loadedMesh.id, 'visible', desiredState.visible);
+        syncMeshLayerProperties(loadedMesh, desiredState);
+      }
+    );
   };
 
   /**
-   * Sync the mesh layer opacities with the prop:
-   *
-   * - the active layer of each mesh should have opacity=1.0,
-   *   every other layer should have opacity=0.0.
-   * - update value of `cal_min` and `cal_max`
+   * Sync the mesh layer properties of a loaded mesh.
    */
-  const syncMeshLayerProperties = () => {
-    const nv = meshNvRef.current;
-
-    const desiredMeshes = visualState.meshes.filter((mesh) => mesh.visible);
-
-    for (const loadedMesh of nv.meshes) {
-      const desiredMesh = desiredMeshes.find(
-        (mesh) => mesh.name === loadedMesh.name,
-      );
-      if (desiredMesh === undefined) {
-        continue;
-      }
-      for (let i = 0; i < loadedMesh.layers.length; i++) {
-        const opacity =
-          desiredMesh.activeLayerIndex !== null &&
-          desiredMesh.activeLayerIndex === i
-            ? 1.0
-            : 0.0;
-        const properties = {
-          opacity,
-          ...visualState.globalMeshOverlaySettings,
-        };
-        Object.entries(properties).forEach(([key, value]) => {
-          nv.setMeshLayerProperty(loadedMesh.id, i, key, value);
-        });
-      }
+  const syncMeshLayerProperties = (loadedMesh, desiredState: Mesh) => {
+    for (let i = 0; i < loadedMesh.layers.length; i++) {
+      const opacity =
+        desiredState.activeLayerIndex !== null &&
+        desiredState.activeLayerIndex === i
+          ? 1.0
+          : 0.0;
+      const properties = {
+        opacity,
+        ...visualState.globalMeshOverlaySettings,
+      };
+      const currentLayer = loadedMesh.layers[i];
+      Object.entries(properties).forEach(([key, value]) => {
+        // setMeshLayerProperty is an expensive call, so we want to first check whether value is different
+        // before calling setMeshLayerProperty
+        if (currentLayer[key] !== value) {
+          meshNvRef.current.setMeshLayerProperty(loadedMesh.id, i, key, value);
+        }
+      });
     }
-  };
+  }
 
   /**
    * Change Niivue settings (which are unrelated to any specific data file).
