@@ -4,7 +4,7 @@ import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import AppLayout from "./AppLayout";
-import SubplateSurfaces from "./SubplateSurfaces";
+import SubplateSurfaces from "./SurfaceAndMaskViewer";
 import { Client, Subject } from "./lib/client";
 import "./style.css";
 import { INITIAL_STATE, VisualState } from "./lib/visualstate";

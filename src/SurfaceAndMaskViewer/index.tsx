@@ -23,6 +23,50 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
 
   const [lowerCanvasHeight, setLowerCanvasHeight] = useState(300);
 
+  /**
+   * (Re-)Initialize the Niivue instance and load meshes and volumes.
+   */
+  const init = async () => {
+    await Promise.all([initMeshCanvas(), initVolumeCanvas()]);
+    syncNiivueSettings();
+    volumeNvRef.current.syncWith(meshNvRef.current, {
+      "3d": true,
+      "2d": true,
+    });
+    meshNvRef.current.syncWith(volumeNvRef.current, {
+      "3d": true,
+      "2d": true,
+    });
+  };
+
+  const initVolumeCanvas = async () => {
+    // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
+    volumeNvRef.current = new Niivue();
+    const nv = volumeNvRef.current;
+    nv.attachToCanvas(volumeCanvas.current);
+    nv.setHighResolutionCapable(visualState.highResolutionCapable);
+
+    await nv.loadVolumes(visualState.volumes);
+    nv.setSliceType(3);
+    nv.setSliceMM(true);
+    nv.opts.multiplanarForceRender = true;
+  };
+
+  const initMeshCanvas = async () => {
+    // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
+    meshNvRef.current = new Niivue({ isColorbar: true });
+    const nv = meshNvRef.current;
+    nv.attachToCanvas(meshCanvas.current);
+    nv.setHighResolutionCapable(visualState.highResolutionCapable);
+    await loadMeshes();
+
+    // Niivue settings
+    nv.setMeshThicknessOn2D(0);
+  };
+
+  /**
+   * Unload all meshes, then load only the visible ones.
+   */
   const loadMeshes = async () => {
     const nv = meshNvRef.current;
 
@@ -40,13 +84,29 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   };
 
   /**
+   * Sync the Niivue instance's meshes state with `visualState.meshes`.
+   */
+  const syncMeshes = () => {
+    const visibleUrls = (meshes: Mesh[]) =>
+      meshes.filter((mesh) => mesh.visible).map((mesh) => mesh.url);
+    if (
+      JSON.stringify(visibleUrls(prevState.meshes)) ===
+      JSON.stringify(visibleUrls(visualState.meshes))
+    ) {
+      syncMeshLayerProperties();
+    } else {
+      loadMeshes();
+    }
+  };
+
+  /**
    * Sync the mesh layer opacities with the prop:
    *
    * - the active layer of each mesh should have opacity=1.0,
    *   every other layer should have opacity=0.0.
    * - update value of `cal_min` and `cal_max`
    */
-  const changeMeshLayerProperties = () => {
+  const syncMeshLayerProperties = () => {
     const nv = meshNvRef.current;
 
     const desiredMeshes = visualState.meshes.filter((mesh) => mesh.visible);
@@ -75,99 +135,46 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
     }
   };
 
+  /**
+   * Change Niivue settings (which are unrelated to any specific data file).
+   */
+  const syncNiivueSettings = () => {
+    [meshNvRef, volumeNvRef]
+      .map((ref) => ref.current)
+      .forEach((nv) => {
+        nv.setHighResolutionCapable(visualState.highResolutionCapable);
+      });
+    meshNvRef.current.opts.isOrientCube = visualState.isOrientCube;
+  };
+
+  /**
+   * Sync the Niivue instance's volume opacities with the prop.
+   */
+  const syncVolumeOpacities = () => {
+    const nv = volumeNvRef.current;
+    zipNvState(nv.volumes, visualState.volumes, "url").forEach(
+      ([i, _vol, desiredState]) => {
+        nv.setOpacity(i, desiredState.opacity);
+      },
+    );
+  };
+
   useEffect(() => {
-    const initMeshCanvas = async () => {
-      // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
-      meshNvRef.current = new Niivue({ isColorbar: true });
-      const nv = meshNvRef.current;
-      nv.attachToCanvas(meshCanvas.current);
-      nv.setHighResolutionCapable(visualState.highResolutionCapable);
-      await loadMeshes();
-
-      // Niivue settings
-      nv.setMeshThicknessOn2D(0);
-    };
-
-    const initVolumeCanvas = async () => {
-      // Note: need to create new Niivue object when switching subjects, otherwise WebGL freezes.
-      volumeNvRef.current = new Niivue();
-      const nv = volumeNvRef.current;
-      nv.attachToCanvas(volumeCanvas.current);
-      nv.setHighResolutionCapable(visualState.highResolutionCapable);
-
-      await nv.loadVolumes(visualState.volumes);
-      nv.setSliceType(3);
-      nv.setSliceMM(true);
-      nv.opts.multiplanarForceRender = true;
-    };
-
-    /**
-     * (Re-)Initialize the Niivue instance and load meshes and volumes.
-     */
-    const init = async () => {
-      await Promise.all([initMeshCanvas(), initVolumeCanvas()]);
-      updateNiivueSettings();
-      volumeNvRef.current.syncWith(meshNvRef.current, {
-        "3d": true,
-        "2d": true,
-      });
-      meshNvRef.current.syncWith(volumeNvRef.current, {
-        "3d": true,
-        "2d": true,
-      });
-    };
-
-    /**
-     * Change Niivue settings (which are unrelated to any specific data file).
-     */
-    const updateNiivueSettings = () => {
-      [meshNvRef, volumeNvRef]
-        .map((ref) => ref.current)
-        .forEach((nv) => {
-          nv.setHighResolutionCapable(visualState.highResolutionCapable);
-        });
-      meshNvRef.current.opts.isOrientCube = visualState.isOrientCube;
-    };
-
-    /**
-     * Sync the Niivue instance's volume opacities with the prop.
-     */
-    const updateVolumeOpacities = () => {
-      const nv = volumeNvRef.current;
-      zipNvState(nv.volumes, visualState.volumes, "url").forEach(
-        ([i, _vol, desiredState]) => {
-          nv.setOpacity(i, desiredState.opacity);
-        },
-      );
-    };
-
-    const updateMeshes = () => {
-      const visibleUrls = (meshes: Mesh[]) =>
-        meshes.filter((mesh) => mesh.visible).map((mesh) => mesh.url);
-      if (
-        JSON.stringify(visibleUrls(prevState.meshes)) ===
-        JSON.stringify(visibleUrls(visualState.meshes))
-      ) {
-        changeMeshLayerProperties();
-      } else {
-        loadMeshes();
-      }
-    };
 
     /**
      * Mutate the current Niivue instance's loaded mesh and volume properties.
      */
-    const update = () => {
-      updateNiivueSettings();
-      updateVolumeOpacities();
-      updateMeshes();
+    const sync = () => {
+      syncNiivueSettings();
+      syncVolumeOpacities();
+      syncMeshes();
     };
 
     if (prevState.counter !== visualState.counter) {
       init();
     } else if (meshNvRef.current.gl && volumeNvRef.current.gl) {
       // update only when OpenGL is ready, which is not true during first render
-      update();
+      sync();
     }
     setPrevState(visualState);
   }, [visualState]);
