@@ -105,8 +105,13 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
         opacity,
         ...visualState.globalMeshOverlaySettings,
       };
+      const currentLayer = loadedMesh.layers[i];
       Object.entries(properties).forEach(([key, value]) => {
-        meshNvRef.current.setMeshLayerProperty(loadedMesh.id, i, key, value);
+        // setMeshLayerProperty is an expensive call, so we want to first check whether value is different
+        // before calling setMeshLayerProperty
+        if (currentLayer[key] !== value) {
+          meshNvRef.current.setMeshLayerProperty(loadedMesh.id, i, key, value);
+        }
       });
     }
   }
