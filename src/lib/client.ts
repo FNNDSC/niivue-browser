@@ -4,7 +4,7 @@ import {
   SURFACE_OVERLAY_RE,
   SURFACE_FILE_EXTENSION,
   SUBJECT_COLUMN_NAMES,
-} from "./recognize"
+} from "./recognize";
 const ACCEPT_JSON = {
   headers: {
     Accept: "application/json",

@@ -400,7 +400,9 @@ const MyPage = ({
                       action: NavSelectionClass.MeshOverlay,
                       centerName: centerNameOf(layerUrl),
                     })}
-                    isActive={firstVisibleLeftSurface.activeLayerUrl === layerUrl}
+                    isActive={
+                      firstVisibleLeftSurface.activeLayerUrl === layerUrl
+                    }
                   >
                     {centerNameOf(layerUrl)}
                   </NavItem>
