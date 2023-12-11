@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@niivue/niivue':
-    specifier: ^0.38.5
-    version: 0.38.5
+    specifier: ^0.38.8
+    version: 0.38.8
   '@patternfly/react-core':
     specifier: ^5.1.1
     version: 5.1.1(react-dom@18.2.0)(react@18.2.0)
@@ -708,6 +708,18 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
+  /@lukeed/csprng@1.1.0:
+    resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
+    engines: {node: '>=8'}
+    dev: false
+
+  /@lukeed/uuid@2.0.1:
+    resolution: {integrity: sha512-qC72D4+CDdjGqJvkFMMEAtancHUQ7/d/tAiHf64z8MopFDmcrtbcJuerDtFceuAfQJ2pDSfCKCtbqoGBNnwg0w==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@lukeed/csprng': 1.1.0
+    dev: false
+
   /@mdn/browser-compat-data@5.4.4:
     resolution: {integrity: sha512-ykYCVBr3CjyKHiXefqyl3SuSpoib/5ViBZ2kjD18xbZFJpnSSJZg1deq+lirYN0vheKhj7BU+29qjAusfZalOA==}
     dev: true
@@ -718,15 +730,19 @@ packages:
       eslint-scope: 5.1.1
     dev: true
 
-  /@niivue/niivue@0.38.5:
-    resolution: {integrity: sha512-MjMfJq95j8m92v5t0sCMcRxZwz5N43wRrrddxWXkDvtscbu/HfwEkLFzLmjxCUv6tslCp4/23ycYGKyNp2pcZQ==}
+  /@niivue/niivue@0.38.8:
+    resolution: {integrity: sha512-m2uC4kqKpwdk6y+heJSpVnysYDp7IW06MsYVw9ccdKnNOwI9DWUweBR93IsiPbHrTVohPqpjeAjufnjAbS5PTA==}
     dependencies:
+      '@lukeed/uuid': 2.0.1
       '@ungap/structured-clone': 1.2.0
+      array-equal: 1.0.2
       daikon: 1.2.45
       fflate: 0.7.4
       gl-matrix: 3.4.3
       nifti-reader-js: 0.6.8
       rxjs: 7.8.1
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.6.1
     dev: false
 
   /@nodelib/fs.scandir@2.1.5:
@@ -931,7 +947,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: true
     optional: true
 
   /@rollup/rollup-linux-x64-musl@4.6.1:
@@ -1161,6 +1176,10 @@ packages:
       call-bind: 1.0.5
       is-array-buffer: 3.0.2
     dev: true
+
+  /array-equal@1.0.2:
+    resolution: {integrity: sha512-gUHx76KtnhEgB3HOuFYiCm3FIdEs6ocM2asHvNTkfu/Y09qQVrrVVaOKENmS2KkSaGoxgXNqC+ZVtR/n0MOkSA==}
+    dev: false
 
   /array-includes@3.1.7:
     resolution: {integrity: sha512-dlcsNBIiWhPkHdOEEKnehA+RNUWDc4UqFtnIXU4uuYDPtA4LDkr7qip2p0VvFAEXNDr0yWZ9PJyIRiGjRLQzwQ==}

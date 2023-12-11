@@ -64,10 +64,9 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
   const initMeshes = async () => {
     const nv = meshNvRef.current;
 
-    const meshOptions = visualState.meshes
-      .map((mesh) =>
-        addMeshOverlaySettings(mesh, visualState.globalMeshOverlaySettings),
-      );
+    const meshOptions = visualState.meshes.map((mesh) =>
+      addMeshOverlaySettings(mesh, visualState.globalMeshOverlaySettings),
+    );
     await nv.loadMeshes(meshOptions);
     hideAllButOneMeshLayerColorbar(nv);
   };
@@ -79,9 +78,9 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
     const nv = meshNvRef.current;
     zipNvState(nv.meshes, visualState.meshes, "name").forEach(
       ([_i, loadedMesh, desiredState]) => {
-        nv.setMeshProperty(loadedMesh.id, 'visible', desiredState.visible);
+        nv.setMeshProperty(loadedMesh.id, "visible", desiredState.visible);
         syncMeshLayerProperties(loadedMesh, desiredState);
-      }
+      },
     );
   };
 
@@ -108,7 +107,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
         }
       });
     }
-  }
+  };
 
   /**
    * Change Niivue settings (which are unrelated to any specific data file).
@@ -134,8 +133,15 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
     );
   };
 
-  useEffect(() => {
+  const glIsReady = (): boolean => {
+    try {
+      return meshNvRef.current.gl && volumeNvRef.current.gl;
+    } catch (_e: any) {
+      return false;
+    }
+  };
 
+  useEffect(() => {
     /**
      * Mutate the current Niivue instance's loaded mesh and volume properties.
      */
@@ -147,7 +153,7 @@ const SubplateSurfaces = ({ visualState }: { visualState: VisualState }) => {
 
     if (prevState.counter !== visualState.counter) {
       init();
-    } else if (meshNvRef.current.gl && volumeNvRef.current.gl) {
+    } else if (glIsReady()) {
       // update only when OpenGL is ready, which is not true during first render
       sync();
     }

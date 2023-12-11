@@ -13,7 +13,7 @@
     "fmt": "biome format --write src/"
   },
   "dependencies": {
-    "@niivue/niivue": "^0.38.5",
+    "@niivue/niivue": "^0.38.8",
     "@patternfly/react-core": "^5.1.1",
     "@patternfly/react-icons": "^5.1.1",
     "@patternfly/react-table": "^5.1.1",
