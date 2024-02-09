@@ -12,3 +12,8 @@
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-text-size-adjust: 100%;
 }
+
+/* hotfix, fixed in https://github.com/niivue/niivue/pull/863 */
+canvas {
+	display: block;
+}
